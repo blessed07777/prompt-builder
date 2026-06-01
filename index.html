@@ -144,35 +144,40 @@ body{
 }
 .scard.active .scard-q{color:var(--text)}
 
-/* THE TEXTAREA — big and visible */
-.scard-ta-wrap{padding:0 12px}
+/* THE TEXTAREA — big and VERY visible */
+.scard-ta-wrap{padding:0 12px 2px}
 .scard-ta{
   width:100%;
-  padding:12px 14px;
+  padding:13px 15px;
   border-radius:12px;
-  /* Always show a visible border in accent colour */
-  border:2px solid rgba(var(--acr,104,91,199),.35);
-  background:var(--surface3);
-  color:var(--text);
-  font-size:13.5px;
+  /* Solid accent border — always visible, no transparency tricks */
+  border:2.5px solid var(--accent,#685BC7);
+  /* Clearly different background from card */
+  background:#0a0818;
+  color:#e2daff;
+  font-size:13px;
   font-family:inherit;
-  line-height:1.7;
+  line-height:1.75;
   outline:none;
   resize:none;
-  min-height:96px;
-  transition:border-color .2s,box-shadow .2s,background .3s,color .3s;
+  min-height:100px;
+  transition:border-color .2s,box-shadow .2s,background .3s;
+}
+[data-theme="light"] .scard-ta{
+  background:#ffffff;
+  color:#1a1235;
+  border-color:var(--accent,#685BC7);
 }
 .scard-ta:focus{
-  border-color:var(--accent,#685BC7);
-  box-shadow:0 0 0 3px rgba(var(--acr,104,91,199),.15);
-  background:var(--surface2);
+  box-shadow:0 0 0 4px rgba(104,91,199,.25);
 }
 .scard-ta::placeholder{
-  color:var(--muted);
+  color:#5a5485;
   font-size:12px;
   font-style:italic;
-  line-height:1.6;
+  line-height:1.65;
 }
+[data-theme="light"] .scard-ta::placeholder{color:#9b94cc}
 
 /* example hint */
 .scard-example{
