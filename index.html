@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI TREND — Prompt Builder</title>
+<style>
+/* ═══════════════════════════════
+   THEMES
+═══════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+
+[data-theme="dark"]{
+  --bg:#09080f;--bg2:#0e0c1a;--bg3:#161230;
+  --border:#1e1a38;--border2:#2d2960;
+  --text:#e2daff;--sub:#9890c8;--dim:#4a4570;
+  --card:#110f20;--glass:rgba(9,8,15,.9);
+  --sh:rgba(0,0,0,.45);
+  --purple:#685BC7;--green:#B5ED18;--red:#f04;
+}
+[data-theme="light"]{
+  --bg:#f3f1fc;--bg2:#ffffff;--bg3:#ece8ff;
+  --border:#ddd8f5;--border2:#c4bcf0;
+  --text:#1a1235;--sub:#6a5fa8;--dim:#aaa4cc;
+  --card:#ffffff;--glass:rgba(243,241,252,.92);
+  --sh:rgba(100,80,200,.1);
+  --purple:#5b4fc0;--green:#3fa500;--red:#e53;
+}
+
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',system-ui,sans-serif;
+  display:flex;flex-direction:column;
+  transition:background .35s,color .35s;
+}
+
+/* ═══════════════════════════════
+   HEADER
+═══════════════════════════════ */
+.hdr{
+  flex-shrink:0;height:50px;
+  background:var(--glass);backdrop-filter:blur(20px);
+  border-bottom:1.5px solid var(--border);
+  padding:0 16px;display:flex;align-items:center;gap:12px;z-index:99;
+  transition:background .35s,border-color .35s;
+}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-box{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#685BC7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;box-shadow:0 2px 8px rgba(104,91,199,.4)}
+.logo-t{font-size:13px;font-weight:900;color:var(--text);letter-spacing:.06em;transition:color .35s}
+.logo-t em{color:var(--purple);font-style:normal}
+
+.hdr-mid{flex:1;display:flex;align-items:center;gap:10px}
+.prog-dots{display:flex;gap:3px}
+.prog-dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:background .35s,transform .25s}
+.prog-dot.on{background:var(--purple)}
+.prog-dot.done{background:var(--green)}
+.prog-ct{font-size:11px;color:var(--dim);font-weight:700;white-space:nowrap;transition:color .35s}
+
+/* theme toggle */
+.th-toggle{
+  width:40px;height:21px;border-radius:11px;
+  border:1.5px solid var(--border2);background:var(--bg3);
+  cursor:pointer;display:flex;align-items:center;padding:2px;flex-shrink:0;
+  transition:background .35s,border-color .35s;
+}
+.th-ball{
+  width:13px;height:13px;border-radius:50%;
+  background:linear-gradient(135deg,#685BC7,#7c3aed);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  font-size:7px;display:flex;align-items:center;justify-content:center;
+}
+[data-theme="dark"]  .th-ball{transform:translateX(19px)}
+[data-theme="light"] .th-ball{transform:translateX(0)}
+
+.gen-btn{
+  padding:7px 16px;border-radius:18px;border:none;
+  background:linear-gradient(135deg,#685BC7,#7c3aed);
+  color:#fff;font-size:12px;font-weight:800;cursor:pointer;
+  flex-shrink:0;box-shadow:0 3px 12px rgba(104,91,199,.3);
+  transition:transform .18s,box-shadow .18s,opacity .18s;
+}
+.gen-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(104,91,199,.45)}
+.gen-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+
+/* ═══════════════════════════════
+   WORKSPACE
+═══════════════════════════════ */
+.workspace{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* ═══════════════════════════════
+   LEFT — BLOCKS
+═══════════════════════════════ */
+.left-col{
+  width:48%;min-width:200px;flex-shrink:0;
+  overflow-y:auto;padding:12px 12px 80px;
+  display:flex;flex-direction:column;gap:7px;
+}
+
+/* BLOCK */
+.bl{
+  background:var(--card);border:1.5px solid var(--border);border-radius:11px;
+  overflow:hidden;transition:border-color .2s,box-shadow .2s,background .35s;
+  border-left:3px solid var(--c, var(--border));
+}
+.bl:hover{border-color:var(--border2)}
+.bl.done{border-color:var(--c)}
+.bl.active{border-color:var(--c);box-shadow:0 0 0 3px rgba(var(--cr),.1)}
+
+.bl-head{
+  display:flex;align-items:center;gap:9px;padding:10px 12px;
+  cursor:pointer;user-select:none;
+}
+.bl-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.bl-name{font-size:13px;font-weight:800;color:var(--text);flex:1;min-width:0;transition:color .35s}
+.bl-filled{font-size:10px;color:var(--c);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;flex-shrink:0}
+.bl-chk{
+  width:16px;height:16px;border-radius:50%;border:1.5px solid var(--dim);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:transparent;transition:all .2s;
+}
+.bl.done .bl-chk{background:var(--c);border-color:var(--c);color:#fff}
+.bl-arr{color:var(--dim);font-size:9px;transition:transform .22s;flex-shrink:0;margin-left:2px}
+.bl-arr.open{transform:rotate(180deg)}
+
+.bl-body{display:none;padding:0 12px 12px}
+.bl-body.open{display:block}
+.bl-ta{
+  width:100%;padding:9px 11px;
+  background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:13px;font-family:inherit;
+  outline:none;resize:none;line-height:1.6;min-height:76px;
+  transition:border-color .2s,background .35s,color .35s,box-shadow .15s;
+}
+.bl-ta:focus{border-color:var(--c);box-shadow:0 0 0 3px rgba(var(--cr),.1)}
+.bl-ta::placeholder{color:var(--dim);font-size:12px;font-style:italic}
+.bl-hint{font-size:10px;color:var(--dim);margin-bottom:7px;padding:6px 9px;background:var(--bg3);border-radius:7px;line-height:1.5;transition:background .35s}
+
+/* ═══════════════════════════════
+   DIVIDER
+═══════════════════════════════ */
+.divider{
+  width:16px;flex-shrink:0;position:relative;
+  cursor:col-resize;z-index:10;
+  display:flex;align-items:center;justify-content:center;
+}
+.div-line{
+  position:absolute;inset:0;left:7px;width:2px;
+  background:var(--border);border-radius:1px;
+  transition:background .2s,width .15s;pointer-events:none;
+}
+.divider:hover .div-line,.divider.drag .div-line{background:var(--purple);width:3px}
+.div-handle{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(.85);
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:18px;padding:8px 4px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  box-shadow:0 4px 18px var(--sh);
+  opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s,border-color .2s,background .35s;
+}
+.divider:hover .div-handle,.divider.drag .div-handle{
+  opacity:1;transform:translate(-50%,-50%) scale(1);
+  border-color:var(--purple);pointer-events:all;
+}
+.div-btn{
+  width:20px;height:20px;border:none;border-radius:5px;
+  background:rgba(104,91,199,.1);color:var(--purple);
+  cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.div-btn:hover{background:rgba(104,91,199,.25)}
+.div-grip{display:flex;flex-direction:column;gap:2px;padding:2px 0}
+.div-grip span{display:block;width:3px;height:3px;border-radius:50%;background:var(--dim)}
+
+/* ═══════════════════════════════
+   RIGHT — WIREFRAME PREVIEW
+═══════════════════════════════ */
+.right-col{
+  flex:1;min-width:180px;display:flex;flex-direction:column;overflow:hidden;
+  background:var(--bg);border-left:1.5px solid var(--border);
+  transition:background .35s,border-color .35s;
+}
+.pv-topbar{
+  flex-shrink:0;height:34px;padding:0 12px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  transition:border-color .35s;
+}
+.pv-topbar-l{display:flex;align-items:center;gap:6px}
+.pv-live{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pvlive 2s infinite}
+@keyframes pvlive{0%,100%{opacity:1}50%{opacity:.25}}
+.pv-topbar-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);transition:color .35s}
+.pv-topbar-hint{font-size:10px;color:var(--dim);transition:color .35s}
+
+/* browser frame */
+.bw{flex:1;padding:8px 10px 10px;display:flex;flex-direction:column;overflow:hidden}
+.browser{
+  flex:1;border:1.5px solid var(--border);border-radius:9px;
+  overflow:hidden;display:flex;flex-direction:column;min-height:0;
+  box-shadow:0 6px 28px var(--sh);transition:border-color .35s;
+}
+.bc{
+  flex-shrink:0;height:28px;padding:0 10px;
+  background:var(--bg3);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;transition:background .35s,border-color .35s;
+}
+.bcd{width:8px;height:8px;border-radius:50%}
+.bcd.r{background:#ff5f57}.bcd.y{background:#febc2e}.bcd.g{background:#28c840}
+.bc-url{
+  flex:1;background:var(--bg2);border-radius:4px;height:16px;
+  margin:0 8px;font-size:9px;color:var(--dim);display:flex;align-items:center;
+  padding:0 8px;transition:background .35s,color .35s;
+}
+.pv-scroll{flex:1;overflow-y:auto;background:var(--bg2);transition:background .35s}
+
+/* ── WIREFRAME SECTIONS ── */
+.ws{
+  border-bottom:1.5px solid var(--border);position:relative;
+  transition:border-color .35s,background .2s,box-shadow .25s;
+}
+.ws::before{
+  content:attr(data-label);
+  position:absolute;top:5px;left:8px;
+  font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--c, var(--dim));opacity:.7;
+  transition:color .35s,opacity .2s;
+}
+.ws.hl{
+  box-shadow:inset 0 0 0 2px var(--c),0 0 20px -4px var(--c);
+  background:rgba(var(--cr),.04);
+}
+.ws.hl::before{opacity:1}
+.ws.dim{opacity:.3}
+
+/* HEADER wireframe */
+.ws-hdr{
+  height:38px;padding:0 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg3);transition:background .35s;
+}
+.ws-logo{font-size:11px;font-weight:900;color:var(--text);transition:color .35s}
+.ws-logo em{color:var(--purple);font-style:normal}
+.ws-nav{display:flex;gap:5px}
+.ws-ni{font-size:8px;color:var(--sub);padding:2px 6px;border-radius:5px;border:1px solid var(--border);transition:border-color .35s,color .35s}
+.ws-ni.a{color:var(--purple);border-color:rgba(104,91,199,.35)}
+.ph{height:7px;border-radius:3px;background:var(--border);transition:background .35s}  /* placeholder bar */
+
+/* HERO wireframe */
+.ws-hero{
+  padding:20px 14px 18px;position:relative;overflow:hidden;
+  transition:background .35s;
+}
+[data-theme="dark"] .ws-hero{background:linear-gradient(145deg,#0f0c20,#151030)}
+[data-theme="light"] .ws-hero{background:linear-gradient(145deg,#ece8ff,#f5f2ff)}
+.ws-hero-glow{position:absolute;top:-24px;left:50%;transform:translateX(-50%);width:140px;height:80px;background:radial-gradient(ellipse,rgba(104,91,199,.22),transparent 70%);pointer-events:none}
+.ws-hero-badge{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--green);margin-bottom:7px}
+.ws-hero-h{font-size:14px;font-weight:900;color:var(--text);line-height:1.2;margin-bottom:4px;min-height:15px;transition:color .35s}
+.ws-hero-s{font-size:9px;color:var(--sub);line-height:1.5;margin-bottom:9px;min-height:10px;transition:color .35s}
+.ws-hero-btn{display:inline-block;padding:5px 11px;border-radius:14px;background:linear-gradient(135deg,#685BC7,#7c3aed);font-size:8px;font-weight:800;color:#fff}
+
+/* ABOUT wireframe */
+.ws-about{padding:10px 12px;display:flex;gap:9px;background:var(--bg2);transition:background .35s}
+.ws-ava{width:34px;height:34px;border-radius:7px;flex-shrink:0;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;background:linear-gradient(135deg,rgba(104,91,199,.12),rgba(124,58,237,.07));transition:border-color .35s}
+.ws-sec-lbl{font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.ws-txt{font-size:9px;color:var(--sub);line-height:1.6;transition:color .35s}
+
+/* SKILLS wireframe */
+.ws-skills{padding:10px 12px;background:var(--card);transition:background .35s}
+.ws-skill-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.ws-sk{padding:2px 8px;border-radius:14px;font-size:8px;font-weight:700;border:1px solid rgba(104,91,199,.3);color:var(--purple);background:rgba(104,91,199,.07);transition:background .35s,color .35s}
+.ws-sk-ph{height:16px;border-radius:8px;background:var(--border);transition:background .35s}
+
+/* PROJECTS wireframe */
+.ws-projects{padding:10px 12px;background:var(--bg2);transition:background .35s}
+.ws-proj-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px}
+.ws-proj{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:background .35s,border-color .25s}
+.ws-proj.ok{border-color:rgba(104,91,199,.22)}
+.ws-proj-thumb{height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;background:linear-gradient(135deg,rgba(104,91,199,.1),rgba(124,58,237,.06));transition:background .35s}
+.ws-proj-bd{padding:4px 6px}
+.ws-proj-nm{font-size:8.5px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .35s}
+.ws-proj-ds{font-size:7.5px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .35s}
+.phx{height:6px;border-radius:3px;background:var(--border);margin-bottom:3px;transition:background .35s}
+
+/* STYLE wireframe */
+.ws-style{padding:10px 12px;background:var(--card);transition:background .35s}
+.ws-color-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:5px}
+.ws-clr{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.15);flex-shrink:0}
+.ws-ctag{font-size:8px;padding:2px 7px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--sub);transition:background .35s,color .35s,border-color .35s}
+
+/* CONTACTS wireframe */
+.ws-contacts{padding:10px 12px;background:var(--bg2);transition:background .35s}
+.ws-ct-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.ws-ct{font-size:8px;color:var(--sub);background:var(--card);border:1px solid var(--border);border-radius:5px;padding:3px 7px;display:flex;align-items:center;gap:3px;transition:background .35s,border-color .35s,color .35s}
+
+/* FOOTER wireframe */
+.ws-footer{padding:7px 12px;background:var(--bg3);text-align:center;font-size:8px;color:var(--dim);transition:background .35s,color .35s}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(104,91,199,.2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:rgba(104,91,199,.45)}
+
+/* ═══════════════════════════════
+   MODAL
+═══════════════════════════════ */
+.overlay{
+  position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(14px);
+  display:none;align-items:flex-end;justify-content:center;
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:16px 16px 0 0;
+  width:100%;max-width:660px;max-height:86vh;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 -12px 48px var(--sh);
+  animation:mup .26s cubic-bezier(.4,0,.2,1);
+  transition:background .35s,border-color .35s;
+}
+@keyframes mup{from{transform:translateY(48px);opacity:0}to{transform:none;opacity:1}}
+.m-drag{width:32px;height:3px;background:var(--border);border-radius:2px;margin:10px auto 0;flex-shrink:0}
+.m-head{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.m-title{font-size:14px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:6px;transition:color .35s}
+.m-close{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;font-size:13px;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.m-close:hover{border-color:var(--red);color:var(--red)}
+.m-tabs{padding:10px 16px 0;display:flex;gap:5px;flex-shrink:0}
+.mtab{flex:1;padding:7px;border:1.5px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;font-size:12px;font-weight:700;border-radius:8px;transition:all .15s}
+.mtab.on{background:rgba(104,91,199,.1);border-color:var(--purple);color:var(--text)}
+.m-st{padding:6px 16px;font-size:10px;color:var(--dim);display:flex;align-items:center;gap:6px;flex-shrink:0}
+.mdot{width:5px;height:5px;border-radius:50%;background:var(--border);transition:background .2s}
+.mdot.run{background:var(--green);animation:pvlive 1s infinite}
+.mdot.ok{background:var(--green)}.mdot.err{background:var(--red)}
+.m-body{flex:1;overflow-y:auto;padding:0 16px 12px}
+.pout{
+  background:var(--bg);border:1.5px solid var(--border);border-radius:9px;
+  padding:13px;font-family:'SF Mono','Fira Code',monospace;font-size:12px;
+  line-height:1.8;color:var(--sub);white-space:pre-wrap;word-break:break-word;
+  min-height:130px;transition:background .35s,border-color .35s,color .35s;
+}
+.pout.streaming::after{content:'▋';color:var(--green);animation:blink .55s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.m-foot{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:7px;flex-shrink:0}
+.copy-btn{flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--dim);font-size:12px;font-weight:700;cursor:pointer;transition:all .18s}
+.copy-btn:hover{border-color:var(--purple);color:var(--text)}
+.copy-btn.done{background:rgba(181,237,24,.1);border-color:var(--green);color:var(--green)}
+.m-gen{padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#685BC7,#7c3aed);color:#fff;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 3px 12px rgba(104,91,199,.3);transition:transform .18s,box-shadow .18s}
+.m-gen:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(104,91,199,.45)}
+.m-gen:disabled{opacity:.35;cursor:not-allowed;transform:none}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="logo">
+    <div class="logo-box">AI</div>
+    <span class="logo-t">AI<em> TREND</em></span>
+  </div>
+  <div class="hdr-mid">
+    <div class="prog-dots" id="progDots"></div>
+    <span class="prog-ct" id="progCt">0 / 8</span>
+  </div>
+  <button class="th-toggle" onclick="toggleTheme()">
+    <div class="th-ball"><span id="thIcon">🌙</span></div>
+  </button>
+  <button class="gen-btn" id="genBtn" onclick="openModal()">✨ Промпт</button>
+</header>
+
+<!-- WORKSPACE -->
+<div class="workspace">
+
+  <!-- LEFT -->
+  <div class="left-col" id="leftCol"></div>
+
+  <!-- DIVIDER -->
+  <div class="divider" id="divider">
+    <div class="div-line"></div>
+    <div class="div-handle">
+      <button class="div-btn" onclick="snap(30)">◀</button>
+      <div class="div-grip">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <button class="div-btn" onclick="snap(70)">▶</button>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-col">
+    <div class="pv-topbar">
+      <div class="pv-topbar-l">
+        <div class="pv-live"></div>
+        <span class="pv-topbar-title">Структура сайта</span>
+      </div>
+      <span class="pv-topbar-hint" id="pvHint">заполняй блоки слева →</span>
+    </div>
+    <div class="bw">
+      <div class="browser">
+        <div class="bc">
+          <div class="bcd r"></div><div class="bcd y"></div><div class="bcd g"></div>
+          <div class="bc-url" id="bUrl">мой-сайт.ru</div>
+        </div>
+        <div class="pv-scroll" id="pvScroll"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="bgClose(event)">
+  <div class="modal">
+    <div class="m-drag"></div>
+    <div class="m-head">
+      <div class="m-title">✨ Готовый промпт</div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="m-tabs">
+      <button class="mtab on" id="tab-ru" onclick="setTab('ru')">🇷🇺 Русский</button>
+      <button class="mtab"    id="tab-en" onclick="setTab('en')">🇬🇧 English</button>
+    </div>
+    <div class="m-st"><div class="mdot" id="mdot"></div><span id="mst">Нажми «Сгенерировать» — ИИ соберёт промпт из твоих описаний</span></div>
+    <div class="m-body"><pre class="pout" id="pout">Заполни блоки слева, потом нажми ⚡</pre></div>
+    <div class="m-foot">
+      <button class="copy-btn" id="cpBtn" onclick="doCopy()">📋 Копировать</button>
+      <button class="m-gen" id="mGen" onclick="generate()">⚡ Сгенерировать</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── SECTIONS ── */
+const SEC=[
+  {id:'site',     e:'🌟', n:'О сайте',      c:'#685BC7',cr:'104,91,199',
+   ph:'Какой сайт, для кого, кто ты…',  hint:'Тип сайта и твоё имя — основа промпта'},
+  {id:'header',   e:'🏠', n:'Шапка',         c:'#3b82f6',cr:'59,130,246',
+   ph:'Логотип: «Alex». Меню: Главная, Обо мне, Контакты…', hint:'Что в шапке: логотип и пункты меню'},
+  {id:'hero',     e:'⚡', n:'Главный экран', c:'#f59e0b',cr:'245,158,11',
+   ph:'Заголовок «Привет, я Аня». Кнопка «Смотреть работы»…', hint:'Первое, что видит посетитель'},
+  {id:'about',    e:'👋', n:'Обо мне',       c:'#22c55e',cr:'34,197,94',
+   ph:'Меня зовут Аня, 16 лет. Рисую в Procreate 2 года…', hint:'2–3 предложения о себе'},
+  {id:'skills',   e:'✨', n:'Навыки',         c:'#ec4899',cr:'236,72,153',
+   ph:'Figma, Illustrator, CSS, Анимация, Procreate…', hint:'Перечисли навыки через запятую'},
+  {id:'projects', e:'🖼️',n:'Работы',          c:'#ef4444',cr:'239,68,68',
+   ph:'1. Персонажи для игры\n2. Логотип кофейни\n3. Иллюстрация книги…', hint:'Твои проекты или работы'},
+  {id:'style',    e:'🎨', n:'Стиль',          c:'#a855f7',cr:'168,85,247',
+   ph:'Тёмный фон, акцент #B5ED18. Минимализм. Шрифт Inter…', hint:'Цвета, атмосфера, шрифт'},
+  {id:'contacts', e:'📬', n:'Контакты',       c:'#06b6d4',cr:'6,182,212',
+   ph:'Email: me@mail.ru  Telegram: @me  Instagram: @me.art…', hint:'Как с тобой связаться'},
+];
+
+const D={};SEC.forEach(s=>D[s.id]='');
+let tab='ru',lastRU='',lastEN='',gening=false,activeId=null;
+
+/* ── BUILD BLOCKS ── */
+function init(){
+  // progress dots
+  document.getElementById('progDots').innerHTML=SEC.map(s=>`<div class="prog-dot" id="pd-${s.id}"></div>`).join('');
+  // blocks
+  document.getElementById('leftCol').innerHTML=SEC.map((s,i)=>`
+    <div class="bl" id="bl-${s.id}" style="--c:${s.c};--cr:${s.cr}">
+      <div class="bl-head" onclick="toggleBl('${s.id}')">
+        <span class="bl-icon">${s.e}</span>
+        <span class="bl-name">${s.n}</span>
+        <span class="bl-filled" id="bf-${s.id}"></span>
+        <div class="bl-chk" id="bchk-${s.id}">✓</div>
+        <span class="bl-arr ${i===0?'open':''}" id="ba-${s.id}">▼</span>
+      </div>
+      <div class="bl-body ${i===0?'open':''}" id="bb-${s.id}">
+        <div class="bl-hint">${s.hint}</div>
+        <textarea class="bl-ta" id="ta-${s.id}" placeholder="${s.ph}"
+          oninput="onIn('${s.id}',this.value)"
+          onfocus="onFocus('${s.id}')"
+          rows="4"></textarea>
+      </div>
+    </div>`).join('');
+  renderPV();
+}
+
+function toggleBl(id){
+  const body=document.getElementById('bb-'+id);
+  const arr=document.getElementById('ba-'+id);
+  body.classList.toggle('open',!body.classList.contains('open'));
+  arr.classList.toggle('open',!arr.classList.contains('open'));
+}
+
+/* ── INPUT ── */
+function onIn(id,val){
+  D[id]=val;
+  const has=val.trim()!=='';
+  document.getElementById('bl-'+id).classList.toggle('done',has);
+  document.getElementById('bf-'+id).textContent=has?val.trim().substring(0,38)+(val.length>38?'…':''):'';
+  // progress
+  const n=SEC.filter(s=>D[s.id].trim()).length;
+  SEC.forEach(s=>{
+    const dot=document.getElementById('pd-'+s.id);
+    if(dot)dot.className='prog-dot'+(D[s.id].trim()?' done':s.id===id?' on':'');
+  });
+  document.getElementById('progCt').textContent=n+' / 8';
+  const hint=document.getElementById('pvHint');
+  hint.textContent=n===0?'заполняй блоки →':n<8?`${n} / 8 блоков готово`:' всё заполнено 🎉';
+  // url
+  const nm=xName();
+  if(nm) document.getElementById('bUrl').textContent=nm.toLowerCase().replace(/\s+/g,'-')+'.ru';
+  renderPV();
+}
+
+function onFocus(id){
+  activeId=id;
+  document.querySelectorAll('.bl').forEach(el=>el.classList.remove('active'));
+  document.getElementById('bl-'+id)?.classList.add('active');
+  // open block if closed
+  const bb=document.getElementById('bb-'+id);
+  if(bb&&!bb.classList.contains('open')){
+    bb.classList.add('open');
+    document.getElementById('ba-'+id).classList.add('open');
+  }
+  hlPV(id);
+}
+
+/* ── PREVIEW HIGHLIGHT ── */
+const PVMAP={site:'pws-header',header:'pws-header',hero:'pws-hero',
+             about:'pws-about',skills:'pws-skills',projects:'pws-projects',
+             style:'pws-style',contacts:'pws-contacts'};
+function hlPV(id){
+  document.querySelectorAll('.ws').forEach(el=>el.classList.remove('hl'));
+  const el=document.getElementById(PVMAP[id]);
+  if(!el)return;
+  el.classList.add('hl');
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ── EXTRACTORS ── */
+function has(id){return D[id].trim()!=='';}
+function xName(){
+  const t=D.site+' '+D.header;
+  const m=t.match(/(?:логотип|имя|зовут|name)[:\s«"']+([^\s,»"'\n.]{2,20})/i);
+  if(m)return m[1].trim();
+  const p=(D.site||D.header||'').match(/\b([А-ЯA-Z][а-яёa-z]{2,14})/);
+  return p?p[1]:'';
+}
+function xLogo(){const t=D.header;if(!t)return '';const m=t.match(/логотип[:\s«"']+([^»"'\n,!?]{2,20})/i);return m?m[1].trim():xName().substring(0,18);}
+function xNav(){const t=D.header;if(!t)return[];const m=t.match(/меню[:\s]+(.+?)(?:\n|$)/i);if(m)return m[1].split(/[,;]/).map(s=>s.trim()).filter(Boolean).slice(0,5);const h=t.match(/(?:главная|обо мне|контакты|проекты|услуги|портфолио|блог|работы|галерея)/gi);return h?[...new Set(h.map(s=>s[0].toUpperCase()+s.slice(1)))].slice(0,5):[];}
+function xHT(){const t=D.hero;if(!t)return'';const q=t.match(/[«""]([^»""]{4,50})[»""]/);if(q)return q[1];return t.split(/[.!?\n]/)[0].replace(/^заголовок[:\s]*/i,'').trim().substring(0,50);}
+function xHS(){const t=D.hero;if(!t)return'';const p=t.split(/[.!?\n]/).filter(Boolean);return p[1]?p[1].replace(/^(?:подзаголовок|слоган)[:\s]*/i,'').trim().substring(0,70):'';}
+function xHB(){const t=D.hero;if(!t)return'';const m=t.match(/кнопка[:\s«"']+([^»"'\n,!?]{2,22})/i);return m?m[1].trim():'';}
+function xSkills(){return D.skills?D.skills.split(/[\n,;\/]+/).map(s=>s.replace(/^\d+[.)]\s*/,'').trim()).filter(s=>s.length>1&&s.length<28).slice(0,10):[];}
+function xProjs(){if(!D.projects)return[];const l=D.projects.split('\n').map(s=>s.replace(/^\d+[.):\-]\s*/,'').trim()).filter(s=>s.length>2);return l.length>=2?l.slice(0,4):D.projects.split(/[,;]/).map(s=>s.trim()).filter(s=>s.length>2).slice(0,4);}
+function xColors(){return(D.style.match(/#[0-9A-Fa-f]{3,6}/g)||[]).slice(0,5);}
+function xTheme(){const t=D.style;if(!t)return'';if(/тёмн|dark/i.test(t))return'Тёмная';if(/светл|light/i.test(t))return'Светлая';if(/пастель/i.test(t))return'Пастель';return'';}
+function xFont(){const m=D.style.match(/шрифт[:\s]+([A-Za-zА-Яа-я ]+?)(?:[,.\n]|$)/i);return m?m[1].trim().substring(0,16):'';}
+function xCts(){const t=D.contacts;if(!t)return[];const r=[];const e=t.match(/[\w.+-]+@[\w.-]+\.\w+/);if(e)r.push({i:'📧',v:e[0]});const tg=t.match(/@([\w]+)/);if(tg)r.push({i:'✈️',v:'@'+tg[1]});const gh=t.match(/github\.com\/([\w-]+)/i);if(gh)r.push({i:'🐙',v:'GitHub/'+gh[1]});if(!r.length&&t.trim())r.push({i:'📬',v:t.split(/[\n,]/)[0].trim().substring(0,28)});return r.slice(0,4);}
+
+/* ── RENDER PREVIEW ── */
+const EMJ=['🚀','💡','🎯','⚡'];
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function renderPV(){
+  const logo=xLogo(),nav=xNav(),ht=xHT(),hs=xHS(),hb=xHB();
+  const skills=xSkills(),projs=xProjs(),colors=xColors(),theme=xTheme(),font=xFont(),cts=xCts();
+  const name=xName()||'Мой сайт';
+  const S=SEC.find(s=>s.id==='site')||{c:'#685BC7',cr:'104,91,199'};
+
+  // shared section header c + cr comes from each section's config
+  const sc=(id)=>{ const s=SEC.find(x=>x.id===id); return s?`style="--c:${s.c};--cr:${s.cr}"`:''; };
+
+  const logoH=has('header')&&logo?`<div class="ws-logo">${esc(logo)}</div>`:`<div class="ph" style="width:44px"></div>`;
+  const navH=has('header')&&nav.length?nav.map((n,i)=>`<div class="ws-ni${i===0?' a':''}">${esc(n)}</div>`).join(''):`<div class="ph" style="width:90px"></div>`;
+
+  let heroBody='';
+  if(has('hero')){heroBody=`<div class="ws-hero-glow"></div><div class="ws-hero-badge">✦ ${esc(name)}</div><div class="ws-hero-h">${esc(ht||'Привет!')}</div>${hs?`<div class="ws-hero-s">${esc(hs)}</div>`:''}<div class="ws-hero-btn">${esc(hb||'Узнать больше')}</div>`;}
+  else{heroBody=`<div class="ws-hero-glow"></div><div class="ph" style="width:70%;height:12px;margin-bottom:7px"></div><div class="ph" style="width:50%;opacity:.5;margin-bottom:9px"></div><div class="ph" style="width:58px;height:18px;border-radius:9px;opacity:.35"></div>`;}
+
+  const aboutTxt=D.about.trim().substring(0,100)+(D.about.length>100?'…':'');
+
+  const skillH=has('skills')&&skills.length?skills.map(s=>`<div class="ws-sk">${esc(s)}</div>`).join(''):[40,54,34,48,60].map(w=>`<div class="ws-sk-ph" style="width:${w}px;height:16px;border-radius:8px"></div>`).join('');
+
+  const projH=has('projects')&&projs.length?projs.map((p,i)=>{const pt=p.split(/[—–\-]/);const nm=pt[0].trim().substring(0,19);const ds=pt[1]?.trim().substring(0,22)||'';return`<div class="ws-proj ok"><div class="ws-proj-thumb">${EMJ[i]||'📁'}</div><div class="ws-proj-bd"><div class="ws-proj-nm">${esc(nm)}</div>${ds?`<div class="ws-proj-ds">${esc(ds)}</div>`:''}</div></div>`;}).join(''):[0,1,2,3].map(()=>`<div class="ws-proj"><div class="ws-proj-thumb" style="opacity:.2"></div><div class="ws-proj-bd"><div class="phx" style="width:66%"></div><div class="phx" style="width:45%;opacity:.6"></div></div></div>`).join('');
+
+  const sc2=colors.length?colors:has('style')?['#685BC7','#B5ED18']:[];
+  const clrH=sc2.map(c=>`<div class="ws-clr" style="background:${c}"></div>`).join('');
+
+  const ctH=has('contacts')&&cts.length?cts.map(c=>`<div class="ws-ct">${c.i} ${esc(c.v)}</div>`).join(''):`<div class="ws-ct">📧 email</div><div class="ws-ct">✈️ @user</div>`;
+
+  // Each .ws gets data-label and color vars from its section
+  document.getElementById('pvScroll').innerHTML=`
+    <div class="ws ${has('header')?'':'dim'}" id="pws-header" data-label="шапка" ${sc('header')}><div class="ws-hdr">${logoH}<div class="ws-nav">${navH}</div></div></div>
+    <div class="ws ${has('hero')?'':'dim'}" id="pws-hero" data-label="главный экран" ${sc('hero')}><div class="ws-hero">${heroBody}</div></div>
+    <div class="ws ${has('about')?'':'dim'}" id="pws-about" data-label="обо мне" ${sc('about')}><div class="ws-about"><div class="ws-ava">${has('about')?'👤':'?'}</div><div><div class="ws-sec-lbl" style="color:#86efac">👋 Обо мне</div><div class="ws-txt">${has('about')?esc(aboutTxt):'— напиши о себе —'}</div></div></div></div>
+    <div class="ws ${has('skills')?'':'dim'}" id="pws-skills" data-label="навыки" ${sc('skills')}><div class="ws-skills"><div class="ws-sec-lbl" style="color:#f9a8d4">✨ Навыки</div><div class="ws-skill-row">${skillH}</div></div></div>
+    <div class="ws ${has('projects')?'':'dim'}" id="pws-projects" data-label="работы" ${sc('projects')}><div class="ws-projects"><div class="ws-sec-lbl" style="color:#fca5a5">🖼️ Работы</div><div class="ws-proj-grid">${projH}</div></div></div>
+    <div class="ws ${has('style')?'':'dim'}" id="pws-style" data-label="стиль" ${sc('style')}><div class="ws-style"><div class="ws-sec-lbl" style="color:#d8b4fe">🎨 Стиль</div><div class="ws-color-row">${clrH}${theme?`<div class="ws-ctag">${theme}</div>`:''}${font?`<div class="ws-ctag">${esc(font)}</div>`:''}${!has('style')?'<span style="font-size:8px;color:var(--dim)">опиши стиль →</span>':''}</div></div></div>
+    <div class="ws ${has('contacts')?'':'dim'}" id="pws-contacts" data-label="контакты" ${sc('contacts')}><div class="ws-contacts"><div class="ws-sec-lbl" style="color:#67e8f9">📬 Контакты</div><div class="ws-ct-row">${ctH}</div></div></div>
+    <div class="ws-footer">© 2025 ${esc(name)} · AI TREND ⚡</div>`;
+
+  if(activeId) hlPV(activeId);
+}
+
+/* ── DRAG DIVIDER ── */
+const divider=document.getElementById('divider');
+const leftCol=document.getElementById('leftCol');
+const ws=document.querySelector('.workspace');
+let dragOn=false,dx0=0,dw0=0;
+
+divider.addEventListener('pointerdown',e=>{
+  dragOn=true;dx0=e.clientX;dw0=leftCol.offsetWidth;
+  divider.setPointerCapture(e.pointerId);divider.classList.add('drag');
+  leftCol.style.transition='none';document.body.style.cursor='col-resize';document.body.style.userSelect='none';
+  e.preventDefault();
+});
+divider.addEventListener('pointermove',e=>{
+  if(!dragOn)return;
+  const total=ws.offsetWidth;
+  leftCol.style.width=Math.max(200,Math.min(total-180,dw0+e.clientX-dx0))+'px';
+});
+divider.addEventListener('pointerup',()=>{
+  if(!dragOn)return;dragOn=false;divider.classList.remove('drag');
+  leftCol.style.transition='';document.body.style.cursor='';document.body.style.userSelect='';
+  // soft snap
+  const pct=leftCol.offsetWidth/ws.offsetWidth*100;
+  if(pct<33)snap(28); else if(pct>67)snap(72); else if(pct>45&&pct<55)snap(50);
+});
+divider.addEventListener('dblclick',()=>snap(50));
+
+function snap(pct){
+  leftCol.style.transition='width .32s cubic-bezier(.4,0,.2,1)';
+  leftCol.style.width=pct+'%';
+  setTimeout(()=>leftCol.style.transition='',380);
+}
+
+/* ── THEME ── */
+function toggleTheme(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const next=dark?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  document.getElementById('thIcon').textContent=next==='dark'?'🌙':'☀️';
+  localStorage.setItem('aitrend_theme',next);
+}
+(()=>{
+  const t=localStorage.getItem('aitrend_theme');
+  if(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('thIcon').textContent=t==='dark'?'🌙':'☀️';}
+})();
+
+/* ── MODAL ── */
+function openModal(){document.getElementById('overlay').classList.add('open')}
+function closeModal(){document.getElementById('overlay').classList.remove('open')}
+function bgClose(e){if(e.target===document.getElementById('overlay'))closeModal();}
+function setTab(t){
+  tab=t;
+  document.getElementById('tab-ru').classList.toggle('on',t==='ru');
+  document.getElementById('tab-en').classList.toggle('on',t==='en');
+  const p=document.getElementById('pout');
+  if(t==='ru'&&lastRU)p.textContent=lastRU;
+  else if(t==='en'&&lastEN)p.textContent=lastEN;
+  else if(!gening)p.textContent='Нажми «Сгенерировать» ⚡';
+}
+
+/* ── GENERATE ── */
+function getKey(){return localStorage.getItem('oai_key')||'';}
+function setKey(k){if(k)localStorage.setItem('oai_key',k.trim());}
+
+async function generate(){
+  if(gening)return;
+  const filled=SEC.filter(s=>D[s.id].trim());
+  if(!filled.length){setSt('err','Заполни хотя бы один блок!');return;}
+  let key=getKey();
+  if(!key){
+    key=prompt('Введи OpenAI API ключ (сохранится в браузере):');
+    if(!key?.trim()){setSt('err','Нужен API ключ');return;}
+    setKey(key);
+  }
+  gening=true;
+  const btn=document.getElementById('mGen');btn.disabled=true;btn.textContent='⏳…';
+  document.getElementById('genBtn').disabled=true;
+  const po=document.getElementById('pout');po.classList.add('streaming');po.textContent='';
+  setSt('run','ИИ собирает промпт…');
+  const blocks=SEC.filter(s=>D[s.id].trim()).map(s=>`[${s.n.toUpperCase()}]\n${D[s.id]}`).join('\n\n');
+  const sRU=`Ты — профессиональный промпт-инженер. Пользователь описал разделы сайта. Создай один идеальный промпт для ИИ, который по нему сделает красивый сайт HTML+CSS. Начало: «Ты — опытный веб-разработчик». Структура через ━━━ РАЗДЕЛ ━━━. В конце: ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ. Только промпт. Русский.`;
+  const sEN=`You are a professional prompt engineer. Create one perfect prompt for an AI to build a beautiful HTML+CSS website. Start: "You are an experienced web developer". Use ━━━ SECTION ━━━. End with TECHNICAL REQUIREMENTS. Only the prompt. English.`;
+  try{
+    if(tab==='ru'){lastRU=await doStream(sRU,blocks,po,key);setSt('run','Английский…');lastEN=await doStream(sEN,blocks,null,key);}
+    else{lastEN=await doStream(sEN,blocks,po,key);setSt('run','Русский…');lastRU=await doStream(sRU,blocks,null,key);}
+    po.classList.remove('streaming');po.textContent=tab==='ru'?lastRU:lastEN;
+    setSt('ok','Готово 🎉 Копируй и вставляй в ChatGPT или Claude');
+  }catch(e){po.classList.remove('streaming');po.textContent='❌ '+e.message;setSt('err','Ошибка');}
+  gening=false;btn.disabled=false;btn.textContent='🔄 Обновить';document.getElementById('genBtn').disabled=false;
+}
+
+async function doStream(sys,user,el,key){
+  const r=await fetch('https://api.openai.com/v1/chat/completions',{
+    method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'gpt-4o-mini',stream:true,temperature:.7,max_tokens:1300,
+      messages:[{role:'system',content:sys},{role:'user',content:`Описания:\n\n${user}\n\nСоздай промпт.`}]})
+  });
+  if(!r.ok){const e=await r.json();throw new Error(e.error?.message||r.statusText)}
+  const rd=r.body.getReader(),dc=new TextDecoder();let full='';
+  while(true){
+    const{done,value}=await rd.read();if(done)break;
+    for(const ln of dc.decode(value).split('\n')){
+      if(!ln.startsWith('data:'))continue;const d=ln.slice(5).trim();if(d==='[DONE]')break;
+      try{const t=JSON.parse(d).choices?.[0]?.delta?.content||'';full+=t;if(el){el.textContent=full;el.scrollTop=el.scrollHeight;}}catch{}
+    }
+  }
+  return full;
+}
+
+function setSt(t,m){document.getElementById('mdot').className='mdot '+t;document.getElementById('mst').textContent=m;}
+function doCopy(){const t=tab==='ru'?lastRU:lastEN;if(!t){setSt('err','Сначала сгенерируй ⚡');return;}navigator.clipboard.writeText(t).then(()=>{const b=document.getElementById('cpBtn');b.textContent='✅ Скопировано!';b.classList.add('done');setTimeout(()=>{b.textContent='📋 Копировать';b.classList.remove('done');},2400);});}
+
+/* ── BOOT ── */
+init();
+</script>
+</body>
+</html>
